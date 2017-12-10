@@ -1,0 +1,15 @@
+{
+  "devDependencies": {
+    "poi": "^9.5.5"
+  },
+  "scripts": {
+    "build": "scripts/build.sh"
+  },
+  "dependencies": {
+    "basscss": "8.0.2",
+    "ipfs-api": "^17.2.4",
+    "node-sass": "^4.7.2",
+    "sass-loader": "^6.0.6",
+    "vue-material": "beta"
+  }
+}
