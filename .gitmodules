@@ -1,0 +1,4 @@
+[submodule "docs"]
+	path = docs
+	url = https://github.com/ProjectWyvern/dao.projectwyvern.com.git
+  branch = gh-pages
