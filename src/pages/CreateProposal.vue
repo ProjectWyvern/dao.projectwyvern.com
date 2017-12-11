@@ -1,0 +1,129 @@
+<template>
+<form novalidate class="md-layout-row md-gutter" @submit.prevent="validateProposal">
+  <md-card class="md-flex-50 md-flex-small-100">
+    <md-card-header>
+      <div class="md-title">Create Proposal</div>
+      <br />
+      <div class="md-subtitle">By submitting this form, you will suggest that the Wyvern DAO take a specific course of action (by executing an Ethereum transaction). That proposal will then be voted on and executed (or not) according to the will of the DAO's shareholders.</div>
+      <br />
+      <div class="md-subtitle">Describe your proposal carefully and read over it twice before you submit; once submitted proposals cannot be edited.</div>
+    </md-card-header>
+    <md-card-content>
+      <div class="md-layout-row md-layout-wrap md-gutter">
+        <div class="md-flex md-flex-small-100">
+          <md-field :class="getValidationClass('title')">
+            <label for="title">Pick a title to summarize what this proposal will do.</label>
+            <md-input name="title" id="title" v-model="form.title" :disabled="sending" />
+            <span class="md-error" v-if="!$v.form.title.required">The title is required</span>
+          </md-field>
+        </div>
+        <div class="md-flex md-flex-small-100">
+          <md-field :class="getValidationClass('description')">
+            <label for="description">Describe this proposal in detail, including references or links to external agreements as appropriate.</label>
+            <md-textarea name="description" id="description" v-model="form.description" :disabled="sending" />
+            <span class="md-error" v-if="!$v.form.description.required">The title is required</span>
+          </md-field>
+        </div>
+        <div class="md-flex md-flex-small-100">
+          <md-field :class="getValidationClass('address')">
+            <label for="address">Ethereum address to which the transaction will be sent.</label>
+            <md-input name="address" id="address" v-model="form.address" :disabled="sending" />
+            <span class="md-error" v-if="!$v.form.address.required">The destination address is required</span>
+            <span class="md-error" v-else-if="!$v.form.address.valid">Invalid address (enter in standard 0x-prefixed checksummed hex format)</span>
+          </md-field>
+        </div>
+        <div class="md-flex md-flex-small-100">
+          <md-field :class="getValidationClass('amount')">
+            <label for="amount">Ether to send (0 if no Ether is to be sent).</label>
+            <md-input type="number" id="amount" name="amount" v-model="form.amount" :disabled="sending" />
+            <span class="md-error" v-if="!$v.form.amount.required">The amount is required</span>
+            <span class="md-error" v-else-if="!$v.form.amount.maxlength">Invalid amount</span>
+          </md-field>
+        </div>
+        <div class="md-flex md-flex-small-100">
+          <md-field :class="getValidationClass('bytecode')">
+            <label for="bytecode">Transaction Bytecode</label>
+            <md-textarea name="bytecode" id="bytecode" v-model="form.bytecode" :disabled="sending" />
+            <span class="md-error" v-if="!$v.form.bytecode.required">Transaction bytecode is required; enter the string "null" for an empty payload</span>
+          </md-field>
+        </div>
+      </div>
+    </md-card-content>
+    <md-progress-bar md-mode="indeterminate" v-if="sending" />
+    <md-card-actions>
+      <md-button type="submit" class="md-primary" :disabled="sending">Create Proposal</md-button>
+    </md-card-actions>
+  </md-card>
+  <md-snackbar :md-active.sync="created">Transaction committed - {{ this.txHash }}!</md-snackbar>
+</form>
+</template>
+
+<script>
+import { validationMixin } from 'vuelidate'
+import {
+  required,
+  minLength,
+  maxLength
+} from 'vuelidate/lib/validators'
+
+export default {
+  name: 'CreateProposal',
+  mixins: [validationMixin],
+  data: () => {
+    return {
+      sending: false,
+      created: false,
+      txHash: null,
+      form: {
+        title: null,
+        description: null,
+        address: null,
+        amount: null,
+        bytecode: null
+      }
+    }
+  },
+  validations: {
+    form: {
+      title: { required: required },
+      description: { required: required },
+      address: { required: required },
+      amount: { required: required },
+      bytecode: { required: required }
+    }
+  },
+  methods: {
+    getValidationClass (fieldName) {
+      const field = this.$v.form[fieldName]
+
+      if (field) {
+        return {
+          'md-invalid': field.$invalid && field.$dirty
+        }
+      }
+    },
+    createProposal() {
+      this.sending = true
+      const onTxHash = (txHash) => {
+        this.created = true
+        this.txHash = txHash
+      }
+      const onConfirm = (id) => {
+        this.sending = false
+        this.$router.push('/proposals/' + id)
+      }
+      this.$store.dispatch('createProposal', { title: this.form.title, description: this.form.description, address: this.form.address, amount: this.form.amount, bytecode: this.form.bytecode, onTxHash: onTxHash, onConfirm: onConfirm })
+    },
+    validateProposal () {
+      this.$v.$touch()
+
+      if (!this.$v.$invalid) {
+        this.createProposal()
+      }
+    }
+  },
+  metaInfo: {
+    title: 'Create Proposal'
+  }
+}
+</script>

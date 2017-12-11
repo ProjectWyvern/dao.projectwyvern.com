@@ -4,7 +4,7 @@
       <md-app-toolbar class="md-primary">
         <img src="img/logo-square-red-transparent-200x200.png" class="logo" />
         <h3 class="md-title">Wyvern Distributed Autonomous Organization</h3>
-        <h2 class="md-title" style="opacity: 0.5">Alpha Release</h2>
+        <h2 class="md-title" style="opacity: 0.5">Prerelease Alpha</h2>
         <div class="md-toolbar-section-end">
           <md-button @click="showRightDrawer = !showRightDrawer">Network Configuration</md-button>
         </div>

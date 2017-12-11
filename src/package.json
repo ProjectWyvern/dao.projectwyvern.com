@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "vue-meta": "^1.4.0",
-    "vue-router": "^3.0.1",
-    "vuex": "^3.0.1"
-  }
-}

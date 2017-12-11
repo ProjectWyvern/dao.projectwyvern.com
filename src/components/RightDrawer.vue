@@ -6,27 +6,13 @@
 </md-toolbar>
 <md-list>
   <md-list-item>
-    <span class="md-list-item-text">Abbey Christansen</span>
-
-    <md-button class="md-icon-button md-list-action">
-      <md-icon class="md-primary">chat_bubble</md-icon>
-    </md-button>
+    <span class="md-list-item-text">Ethereum Kovan</span>
   </md-list-item>
-
   <md-list-item>
-    <span class="md-list-item-text">Alex Nelson</span>
-
-    <md-button class="md-icon-button md-list-action">
-      <md-icon class="md-primary">chat_bubble</md-icon>
-    </md-button>
+    <span class="md-list-item-text">Block {{ $store.state.web3.blockNumber }}</span>
   </md-list-item>
-
   <md-list-item>
-    <span class="md-list-item-text">Mary Johnson</span>
-
-    <md-button class="md-icon-button md-list-action">
-      <md-icon>chat_bubble</md-icon>
-    </md-button>
+    <span class="md-list-item-text">Account {{ $store.state.web3.account }}</span>
   </md-list-item>
 </md-list>
 </div>

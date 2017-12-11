@@ -2,3 +2,6 @@
 	path = docs
 	url = https://github.com/ProjectWyvern/dao.projectwyvern.com.git
   branch = gh-pages
+[submodule "src/wyvern-ethereum"]
+	path = src/wyvern-ethereum
+	url = https://github.com/ProjectWyvern/wyvern-ethereum.git
