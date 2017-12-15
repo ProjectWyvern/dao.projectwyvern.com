@@ -32,10 +32,6 @@
   <md-card-content>
     {{ proposal.metadata.description }}
   </md-card-content>
-  <md-card-actions>
-    <md-button>Vote Yea</md-button>
-    <md-button>Vote Nea</md-button>
-  </md-card-actions>
 </md-card>
 </div>
 </template>

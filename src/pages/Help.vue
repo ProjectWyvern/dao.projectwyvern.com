@@ -10,6 +10,9 @@ This web application provides an interface to the DAO smart contract, allowing D
 Anyone in possession of <a href="https://token.projectwyvern.com" target="_blank">WYV tokens</a> is a shareholder in the Wyvern DAO, with voting rights proportional to their token holdings. To exercise your rights, you must connect to this DApp with the account holding your tokens - to do so, set the appropriate network options by clicking "Network Configuration" at the top right.
 </p>
 <p>
+All application code is open-source. To request a fix or suggest an improvement, please open an issue or submit a pull request using the <a href="https://github.com/ProjectWyvern/dao.projectwyvern.com">Github repository</a>.
+</p>
+<p>
 To learn more about the Wyvern project, visit <a href="https://projectwyvern.com" target="_blank">projectwyvern.com</a>. You can also follow us on <a href="https://twitter.com/WyvernExchange" target="_blank">Twitter</a> or <a href="https://medium.com/project-wyvern" target="_blank">Medium</a>. For realtime support, join our <a href="https://riot.im/app/#/room/#projectwyvern:matrix.org">Riot chat</a>.
 </p>
 </div>

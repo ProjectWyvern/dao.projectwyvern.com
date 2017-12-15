@@ -14,7 +14,7 @@
           <router-link v-for="(item, index) in links" :key="index" :to="item.path">
             <md-list-item>
               <md-icon>{{item.icon}}</md-icon>
-              <span class="md-list-item-text">{{item.name}}</span>
+              <span :class="'md-list-item-text' + (item.path === activePath ? ' active' : '')" >{{item.name}}</span>
             </md-list-item>
           </router-link>
         </md-list>
@@ -38,6 +38,11 @@ export default {
   metaInfo: {
     title: '',
     titleTemplate: 'Wyvern DAO • %s'
+  },
+  computed: {
+    activePath: function() {
+      return this.$route.path;
+    }
   },
   data: function() {
     return {
@@ -66,6 +71,10 @@ body {
 </style>
 
 <style scoped>
+.active {
+  font-weight: bold;
+}
+
 .page-container {
   height: 100%;
 }

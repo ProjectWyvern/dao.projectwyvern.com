@@ -4,7 +4,7 @@
     <md-card-header>
       <div class="md-title">Create Proposal</div>
       <br />
-      <div class="md-subtitle">By submitting this form, you will suggest that the Wyvern DAO take a specific course of action (by executing an Ethereum transaction). That proposal will then be voted on and executed (or not) according to the will of the DAO's shareholders.</div>
+      <div class="md-subtitle">By submitting this form, you will create a proposal which suggests that the Wyvern DAO take a specific course of action (by executing an Ethereum transaction). That proposal will then be voted on and executed (or not) according to the will of the DAO's shareholders.</div>
       <br />
       <div class="md-subtitle">Describe your proposal carefully and read over it twice before you submit; once submitted proposals cannot be edited.</div>
     </md-card-header>
@@ -42,7 +42,7 @@
         </div>
         <div class="md-flex md-flex-small-100">
           <md-field :class="getValidationClass('bytecode')">
-            <label for="bytecode">Transaction Bytecode</label>
+            <label for="bytecode">Transaction Bytecode (null for none, 0x-prefixed hex-encoded otherwise)</label>
             <md-textarea name="bytecode" id="bytecode" v-model="form.bytecode" :disabled="sending" />
             <span class="md-error" v-if="!$v.form.bytecode.required">Transaction bytecode is required; enter the string "null" for an empty payload</span>
           </md-field>
