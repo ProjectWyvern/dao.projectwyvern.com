@@ -3,7 +3,7 @@
 <md-progress-bar md-mode="indeterminate" v-if="!$store.state.web3.ready" class="loading"></md-progress-bar>
 <div v-if="$store.state.web3.ready">
 <p>
-Total tokens locked in vote delegation: {{ $store.state.web3.dao.totalLockedTokens.toNumber() }}.
+Total tokens locked in vote delegation: {{ $store.state.web3.dao.totalLockedTokens.div($store.state.web3.token.multiplier).toNumber() }}.
 </p>
 <div v-if="!pending">
 <div v-if="alreadyDelegated">
@@ -52,7 +52,7 @@ export default {
       return this.$store.state.web3.dao.delegatesByDelegator;
     },
     initialAmount: function() {
-      return this.$store.state.web3.dao.lockedDelegatingTokens.toNumber();
+      return this.$store.state.web3.dao.lockedDelegatingTokens.div(this.$store.state.web3.token.multiplier).toNumber();
     }
   },
   methods: {

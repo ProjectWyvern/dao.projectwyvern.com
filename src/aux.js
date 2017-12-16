@@ -1,7 +1,12 @@
+/* global location: false */
+
 import Promise from 'bluebird'
 import BigNumber from 'bignumber.js'
 import _ from 'lodash'
 import { Buffer } from 'buffer'
+import Web3 from 'web3'
+import ipfsAPI from 'ipfs-api'
+import Vue from 'vue'
 
 import { logger } from './logging.js'
 
@@ -68,7 +73,8 @@ const wrapSend = (web3, method, abi, gasLimit) => {
   }
 }
 
-export const web3Actions = (web3) => {
+export const web3Actions = (provider) => {
+  const web3 = new Web3(new Web3.providers.HttpProvider(provider))
   const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
   const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
   const methodAbi = (c, m) => {
@@ -77,11 +83,19 @@ export const web3Actions = (web3) => {
   return {
     approve: wrapAction(wrapSend(web3, Token.methods.approve, methodAbi(TestToken, 'approve'), 250000)),
     setDelegateAndLockTokens: wrapAction(wrapSend(web3, DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
-    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000))
+    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
+    vote: wrapAction(wrapSend(web3, DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
+    swapProvider: ({ state, commit }, url) => {
+      commit('setProvider', url)
+      location.reload()
+    }
   }
 }
 
-export const bind = (ipfs, web3, store, bindings) => {
+export const bind = (store, bindings) => {
+  const web3 = new Web3(new Web3.providers.HttpProvider(store.state.web3provider))
+  const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
+
   const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
   const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
 
@@ -90,6 +104,9 @@ export const bind = (ipfs, web3, store, bindings) => {
   const poll = async () => {
     const start = Date.now()
     const newBlockNumber = await promisify(web3.eth.getBlockNumber)
+    const inter = Date.now()
+    const latency = (inter - start) / 1000
+    Vue.set(store.state.web3, 'latency', latency)
     if (newBlockNumber === blockNumber) return
     blockNumber = newBlockNumber
     const accounts = await promisify(web3.eth.getAccounts)
@@ -132,11 +149,15 @@ export const bind = (ipfs, web3, store, bindings) => {
       const lockedDelegatingTokens = await promisify(DAO.methods.lockedDelegatingTokens(account).call)
       const delegatedAmountsByDelegate = await promisify(DAO.methods.delegatedAmountsByDelegate(account).call)
       var proposals = await Promise.all(_.range(numProposals).map(n => promisify(DAO.methods.proposals(n).call)))
-      proposals = await Promise.all(proposals.map(async function (p) {
+      proposals = await Promise.all(proposals.map(async function (p, index) {
         const hash = Buffer.from(p.metadataHash.slice(2), 'hex').toString()
         var metadata = await promisify(c => ipfs.files.cat(hash, c))
         metadata = JSON.parse(metadata.toString())
+        const { yea, nay, quorum } = await promisify(DAO.methods.countVotes(index).call)
         return {
+          yea: new BigNumber(yea),
+          nay: new BigNumber(nay),
+          quorum: new BigNumber(quorum),
           recipient: p.recipient,
           metadata: metadata,
           amount: new BigNumber(p.amount),
@@ -171,11 +192,13 @@ export const bind = (ipfs, web3, store, bindings) => {
     }
 
     const ready = true
-    const obj = { base, token, dao, ready }
     const end = Date.now()
-    logger.debug({ extra: { diff: (end - start) / 1000 } }, 'Reloaded state')
+    const diff = (end - start) / 1000
+    const obj = { base, token, dao, ready, latency, diff }
+    logger.debug({ extra: { latency: latency, diff: diff } }, 'Reloaded state')
     store.commit('setWeb3', obj)
   }
   poll()
   setInterval(poll, 1000)
+  return web3
 }

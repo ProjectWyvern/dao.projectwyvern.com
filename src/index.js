@@ -15,7 +15,7 @@ Vue.use(VueMeta)
 Vue.use(VueMaterial)
 Vue.use(VueMoment)
 
-const router = new VueRouter({ routes })
+const router = new VueRouter({ routes: routes, mode: 'history' })
 
 /* eslint-disable no-new */
 new Vue({

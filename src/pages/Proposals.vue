@@ -26,9 +26,9 @@
       <div class="md-title">{{ proposal.metadata.title }}</div>
     </router-link>
     <div class="md-subhead">
-    Send {{ proposal.amount }} Ether to {{ proposal.recipient }}.
+    Send {{ proposal.amount.toNumber() }} Ether to {{ proposal.recipient }}.
     <br />
-    {{ proposal.numberOfVotes }} votes cast so far. Voting ends {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
+    {{ proposal.numberOfVotes.toNumber() }} votes cast so far. Voting ends {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
     </div>
   </md-card-header>
   <md-card-content>
