@@ -70,7 +70,7 @@ export default {
       return pct
     },
     canVote: function() {
-      return true;
+      return this.$store.state.web3.base.account !== null;
     },
     proposal: function() {
       return this.$store.state.web3.dao.proposals[this.$route.params.id];

@@ -63,7 +63,6 @@ const wrapSend = (web3, method, abi, gasLimit) => {
     assertReady(state)
     await promisify(method.apply(this, params).call)
     const txHash = await promisify(c => method.apply(this, params).send({from: state.web3.base.account, gasLimit: gasLimit}, c))
-    console.log(method)
     commit('commitTx', { txHash: txHash, abi: abi, params: params })
     onTxHash(txHash)
     track(web3, txHash, (success) => {
@@ -111,8 +110,8 @@ export const bind = (store, bindings) => {
     blockNumber = newBlockNumber
     const accounts = await promisify(web3.eth.getAccounts)
     const network = await promisify(web3.eth.net.getNetworkType)
-    const account = accounts[0]
-    const balance = await promisify(c => web3.eth.getBalance(account, c))
+    const account = accounts[0] ? accounts[0] : null
+    const balance = account ? await promisify(c => web3.eth.getBalance(account, c)) : 0
     const base = { account: account, blockNumber: blockNumber, network: network, balance: new BigNumber(balance) }
 
     var token
@@ -120,7 +119,7 @@ export const bind = (store, bindings) => {
       const supply = await promisify(Token.methods.totalSupply().call)
       const decimals = await promisify(Token.methods.decimals().call)
       const symbol = await promisify(Token.methods.symbol().call)
-      const balance = await promisify(Token.methods.balanceOf(account).call)
+      const balance = account ? await promisify(Token.methods.balanceOf(account).call) : 0
       var events = await promisify(c => Token.getPastEvents('allEvents', {fromBlock: 0}, c))
       events = events.map(e => {
         if (e.returnValues.numberOfTokens) e.returnValues.numberOfTokens = new BigNumber(e.returnValues.numberOfTokens)
@@ -145,9 +144,9 @@ export const bind = (store, bindings) => {
       const sharesTokenAddress = await promisify(DAO.methods.sharesTokenAddress().call)
       const totalLockedTokens = await promisify(DAO.methods.totalLockedTokens().call)
       const requiredSharesToBeBoardMember = await promisify(DAO.methods.requiredSharesToBeBoardMember().call)
-      const delegatesByDelegator = await promisify(DAO.methods.delegatesByDelegator(account).call)
-      const lockedDelegatingTokens = await promisify(DAO.methods.lockedDelegatingTokens(account).call)
-      const delegatedAmountsByDelegate = await promisify(DAO.methods.delegatedAmountsByDelegate(account).call)
+      const delegatesByDelegator = account ? await promisify(DAO.methods.delegatesByDelegator(account).call) : null
+      const lockedDelegatingTokens = account ? await promisify(DAO.methods.lockedDelegatingTokens(account).call) : 0
+      const delegatedAmountsByDelegate = account ? await promisify(DAO.methods.delegatedAmountsByDelegate(account).call) : 0
       var proposals = await Promise.all(_.range(numProposals).map(n => promisify(DAO.methods.proposals(n).call)))
       proposals = await Promise.all(proposals.map(async function (p, index) {
         const hash = Buffer.from(p.metadataHash.slice(2), 'hex').toString()

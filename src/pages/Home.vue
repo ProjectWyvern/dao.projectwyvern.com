@@ -2,7 +2,10 @@
 <div>
 <md-progress-bar md-mode="indeterminate" v-if="!$store.state.web3.ready" />
 <div v-if="$store.state.web3.ready">
-<p class="paragraph">
+<p class="paragraph" v-if="$store.state.web3.base.account === null">
+Not authenticated; view-only mode.
+</p>
+<p class="paragraph" v-if="$store.state.web3.base.account">
 Authenticated through web3 as {{ $store.state.web3.base.account }}.
 <br />
 {{ $store.state.web3.token.balance.div($store.state.web3.token.multiplier).toNumber() }} WYV tokens held, {{ $store.state.web3.token.balance.div($store.state.web3.token.supply).toNumber() * 100 }}% of total supply.
@@ -52,13 +55,10 @@ export default {
 
 <style scoped>
 .paragraph {
-  padding: 20px;
-  padding-top: 0px;
 }
 
 .header {
-  padding-bottom: 10px;
-  padding-left: 20px;
+  padding-bottom: 1em;
 }
 
 .subtitle {

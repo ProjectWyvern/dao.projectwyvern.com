@@ -23,7 +23,7 @@
     Block {{ $store.state.web3.base.blockNumber }}
   </md-list-item>
   <md-list-item class="item">
-    Account {{ $store.state.web3.base.account }}
+    {{ $store.state.web3.base.account ? 'Account ' + $store.state.web3.base.account : 'No account configured.' }}
   </md-list-item>
 </md-list>
 </div>

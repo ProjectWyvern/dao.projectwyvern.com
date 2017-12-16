@@ -5,7 +5,7 @@
 <p>
 Total tokens locked in vote delegation: {{ $store.state.web3.dao.totalLockedTokens.div($store.state.web3.token.multiplier).toNumber() }}.
 </p>
-<div v-if="!pending">
+<div v-if="!pending && canDelegate">
 <div v-if="alreadyDelegated">
 <p>You are presently delegating {{ initialAmount }} votes to {{ initialDelegate }}.</p>
 <md-button class="md-raised" v-on:click="undelegateShares">Undelegate</md-button>
@@ -45,6 +45,9 @@ export default {
     }
   },
   computed: {
+    canDelegate: function() {
+      return this.$store.state.web3.base.account !== null;
+    },
     alreadyDelegated: function() {
       return this.$store.state.web3.dao.delegatesByDelegator !== null;
     },

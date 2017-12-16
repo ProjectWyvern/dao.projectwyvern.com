@@ -17,7 +17,7 @@ const state = {
   notifications: [],
   web3: {},
   web3error: null,
-  web3provider: 'http://localhost:8545'
+  web3provider: 'https://kovan.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6'
 }
 
 const getters = {

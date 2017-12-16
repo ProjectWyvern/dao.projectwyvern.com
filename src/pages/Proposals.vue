@@ -9,7 +9,7 @@
   <md-radio v-model="which" value="passed">Passed</md-radio>
   <md-radio v-model="which" value="failed">Failed</md-radio>
   <md-radio v-model="which" value="all">All</md-radio>
-  <div class="md-toolbar-section-end">
+  <div class="md-toolbar-section-end" v-if="canCreateProposal">
     <router-link to="/proposals/create">
       <md-button class="md-raised md-primary">
         Create Proposal
@@ -51,6 +51,9 @@ export default {
     }
   },
   computed: {
+    canCreateProposal: function () {
+      return this.$store.state.web3.ready && this.$store.state.web3.base.account !== null;
+    },
     proposals: function () {
       return this.$store.state.web3.dao.proposals.filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
