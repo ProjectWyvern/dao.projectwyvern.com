@@ -54,7 +54,7 @@
       <md-button type="submit" class="md-primary" :disabled="sending">Create Proposal</md-button>
     </md-card-actions>
   </md-card>
-  <md-snackbar :md-active.sync="created">Transaction committed - {{ this.txHash }}!</md-snackbar>
+  <md-snackbar :md-active.sync="created">Transaction committed!</md-snackbar>
 </form>
 </template>
 
@@ -73,7 +73,6 @@ export default {
     return {
       sending: false,
       created: false,
-      txHash: null,
       form: {
         title: null,
         description: null,
@@ -103,14 +102,13 @@ export default {
       }
     },
     createProposal() {
-      this.sending = true
       const onTxHash = (txHash) => {
+        this.sending = true
         this.created = true
-        this.txHash = txHash
       }
-      const onConfirm = (id) => {
+      const onConfirm = () => {
         this.sending = false
-        this.$router.push('/proposals/' + id)
+        this.$router.push('/proposals/' + (this.$store.state.web3.dao.numProposals))
       }
       this.$store.dispatch('createProposal', { title: this.form.title, description: this.form.description, address: this.form.address, amount: this.form.amount, bytecode: this.form.bytecode, onTxHash: onTxHash, onConfirm: onConfirm })
     },

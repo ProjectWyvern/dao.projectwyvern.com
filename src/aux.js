@@ -76,6 +76,7 @@ export const web3Actions = (provider) => {
   const web3 = new Web3(new Web3.providers.HttpProvider(provider))
   const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
   const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
+  const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
   const methodAbi = (c, m) => {
     return c.abi.filter(f => f.name === m)[0]
   }
@@ -84,6 +85,17 @@ export const web3Actions = (provider) => {
     setDelegateAndLockTokens: wrapAction(wrapSend(web3, DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
     clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
     vote: wrapAction(wrapSend(web3, DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
+    createProposal: wrapAction(async ({ state, commit }, { title, description, address, amount, bytecode, onTxHash, onConfirm }) => {
+      const wei = web3.utils.toWei(amount, 'ether')
+      if (bytecode === 'null') bytecode = '0x'
+      const json = {title: title, description: description, bytecode: bytecode, version: 1}
+      const res = await ipfs.files.add(Buffer.from(JSON.stringify(json)))
+      const hash = '0x' + Buffer.from(res[0].hash).toString('hex')
+      return wrapSend(web3, DAO.methods.newProposal, methodAbi(TestDAO, 'newProposal'), 500000)(
+        { state, commit },
+        { params: [address, wei, hash, bytecode], onTxHash: onTxHash, onConfirm: onConfirm }
+      )
+    }),
     swapProvider: ({ state, commit }, url) => {
       commit('setProvider', url)
       location.reload()

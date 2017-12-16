@@ -23,39 +23,16 @@ const state = {
 const getters = {
 }
 
-/*
-
-var actions = {
-  createProposal: ({ state, commit }, { title, description, address, amount, bytecode, onTxHash, onConfirm }) => {
-    const wei = web3.utils.toWei(amount, 'ether')
-    if (bytecode === 'null') bytecode = '0x'
-    const json = {title: title, description: description, bytecode: bytecode, version: 1}
-    ipfs.files.add(Buffer.from(JSON.stringify(json)), (err, res) => {
-      if (err) {
-        console.log('ipfs err! ', err, res, wei)
-      } else {
-        const hash = '0x' + Buffer.from(res[0].hash).toString('hex')
-        DAO.methods.newProposal(address, wei, hash, bytecode).call((err, res) => {
-          if (err) {
-            console.log('sim err', err)
-          } else {
-            DAO.methods.newProposal(address, wei, hash, bytecode).send({from: state.web3.account, gasLimit: 1000000}, (err, txHash) => {
-              console.log('res', err, txHash)
-              onTxHash(txHash)
-              // onConfirm()
-            })
-          }
-        })
-      }
-    })
-  }
-}
-
-*/
-
 var actions = {}
 
-actions = Object.assign(actions, web3Actions(state.web3provider))
+var provider = state.web3provider
+try {
+  provider = JSON.parse(window.localStorage.vuex).web3provider
+} catch (err) {
+  logger.warn({ extra: { err } }, 'Could not parse provider from localStorage')
+}
+
+actions = Object.assign(actions, web3Actions(provider))
 
 const mutations = {
   setWeb3: (state, web3) => {
