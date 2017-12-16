@@ -18,6 +18,8 @@
     </router-link>
   </div>
 </md-toolbar>
+<md-progress-bar class="progressbar" md-mode="indeterminate" v-if="!$store.state.web3.ready" />
+<div v-if="$store.state.web3.ready">
 <md-card md-with-hover class="proposal" v-for="(proposal, index) in proposals" :key="proposal.proposalHash">
   <md-card-header>
     <router-link :to="'/proposals/' + index">
@@ -34,6 +36,7 @@
   </md-card-content>
 </md-card>
 </div>
+</div>
 </template>
 
 <script>
@@ -49,7 +52,7 @@ export default {
   },
   computed: {
     proposals: function () {
-      return this.$store.state.proposals.filter(p => 
+      return this.$store.state.web3.dao.proposals.filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
         (this.which === 'all' ||
          (this.which === 'active' && Date.now() < (1000 * p.votingDeadline)) ||
@@ -73,5 +76,9 @@ export default {
 
 .create {
   float: right;
+}
+
+.progressbar {
+  margin-top: 10px;
 }
 </style>

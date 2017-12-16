@@ -1,7 +1,7 @@
 <template>
 <div>
 <p>
-The Wyvern DAO is a distributed autonomous organization, running on the Ethereum blockchain, responsible for the governance of the Wyvern Exchange protocol and development of the present instantiation at <a href="https://exchange.projectwyvern.com" target="_blank">exchange.projectwyvern.com</a>.
+The Wyvern DAO is a distributed autonomous organization, running on the Ethereum blockchain, responsible for governance of the Wyvern Exchange protocol and development of the present instantiation at <a href="https://exchange.projectwyvern.com" target="_blank">exchange.projectwyvern.com</a>.
 </p>
 <p>
 This web application provides an interface to the DAO smart contract, allowing DAO shareholders to create new proposals, view past proposals, vote yea or nay on active proposals, manage vote delegation, and analyze the DAO's current asset holdings.

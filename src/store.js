@@ -6,16 +6,15 @@ import Web3 from 'web3'
 import ipfsAPI from 'ipfs-api'
 import { Buffer } from 'buffer'
 
-import { bind } from './aux.js'
+import { logger } from './logging.js'
+import { web3Actions, track, bind } from './aux.js'
 
 import TestDAO from './wyvern-ethereum/build/contracts/TestDAO.json'
-import TestToken from './wyvern-ethereum/build/contracts/TestToken.json'
 
 // const web3 = new Web3(new Web3.providers.HttpProvider('https://kovan.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6'))
 const web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:8545'))
 
 const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
-const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
 
 const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
 
@@ -23,58 +22,19 @@ Vue.use(Vuex)
 
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  reducer: state => ({ user: state.user })
+  reducer: state => ({ notifications: state.notifications })
 })
 
 const state = {
-  proposals: [],
-  web3: {
-    network: null,
-    blockNumber: 0,
-    account: null,
-    myTokens: 0,
-    totalTokens: 0,
-    numProposals: 0,
-    totalLockedTokens: 0,
-    delegate: null,
-    delegatedAmount: 0
-  }
+  notifications: [],
+  web3: {},
+  web3error: null
 }
 
 const getters = {
 }
 
-const actions = {
-  delegateShares: ({ state, commit }, { tokens, delegate, onTxHash, onConfirm }) => {
-    Token.methods.approve(TestDAO.networks[42].address, tokens).send({from: state.web3.account, gasLimit: 250000}, (err, txHash) => {
-      if (err) {
-        console.log('err', err)
-      } else {
-        DAO.methods.setDelegateAndLockTokens(tokens, delegate).call((err, res) => {
-          if (err) {
-            console.log('sim err', err)
-          } else {
-            DAO.methods.setDelegateAndLockTokens(tokens, delegate).send({from: state.web3.account, gasLimit: 250000}, (err, txHash) => {
-              console.log('res', err, txHash)
-              onTxHash(txHash)
-            })
-          }
-        })
-      }
-    })
-  },
-  undelegateShares: ({ state, commit }, { onTxHash, onConfirm }) => {
-    DAO.methods.clearDelegateAndUnlockTokens().call((err, res) => {
-      if (err) {
-        console.log('sim err', err)
-      } else {
-        DAO.methods.clearDelegateAndUnlockTokens().send({from: state.web3.account, gasLimit: 250000}, (err, txHash) => {
-          console.log('res', err, txHash)
-          onTxHash(txHash)
-        })
-      }
-    })
-  },
+var actions = {
   voteOnProposal: ({ state, commit }, { index, support, onTxHash, onConfirm }) => {
     DAO.methods.vote(index, support).call((err, res) => {
       if (err) {
@@ -112,9 +72,44 @@ const actions = {
   }
 }
 
+actions = Object.assign(actions, web3Actions(web3))
+
 const mutations = {
   setWeb3: (state, web3) => {
     Vue.set(state, 'web3', web3)
+  },
+  setWeb3Error: (state, error) => {
+    logger.warn({ extra: error }, 'Web3 threw error')
+    Vue.set(state, 'web3error', error)
+  },
+  clearWeb3Error: (state) => {
+    Vue.set(state, 'web3error', null)
+  },
+  commitTx: (state, { txHash, abi, params }) => {
+    logger.info({ extra: { txHash, params } }, 'Transaction committed')
+    state.notifications.splice(0, 0, {
+      type: 'commitTx',
+      status: 'warn',
+      finalized: false,
+      txHash: txHash,
+      abi: abi,
+      params: params
+    })
+  },
+  mineTx: (state, { txHash, success }) => {
+    logger.info({ extra: { txHash, success } }, 'Transaction mined')
+    const m = state.notifications.map((n, i) => [n, i]).filter(m => m[0].txHash === txHash)[0]
+    const n = m[0]
+    const i = m[1]
+    Vue.set(n, 'status', success ? 'ok' : 'error')
+    Vue.set(n, 'finalized', true)
+    Vue.set(state.notifications, i, n)
+  },
+  clearNotification: (state, index) => {
+    state.notifications.splice(index, 1)
+  },
+  clearNotifications: (state) => {
+    Vue.set(state, 'notifications', [])
   }
 }
 
@@ -125,6 +120,13 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 const store = new Vuex.Store({ state, getters, actions, mutations, plugins })
+
+store.state.notifications.filter(n => !n.finalized).map(n => {
+  const hash = n.txHash
+  track(web3, hash, (success) => {
+    store.commit('mineTx', { txHash: hash, success: success })
+  })
+})
 
 bind(ipfs, web3, store, {})
 

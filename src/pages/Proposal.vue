@@ -1,7 +1,8 @@
 <template>
 <div>
-<md-progress-bar md-mode="indeterminate" v-if="!proposal" class="loading"></md-progress-bar>
-<md-card md-with-hover class="proposal" v-if="proposal">
+<md-progress-bar md-mode="indeterminate" v-if="!$store.state.web3.ready" class="loading"></md-progress-bar>
+<div v-if="$store.state.web3.ready">
+<md-card class="proposal">
   <md-card-header>
     <div class="md-title">{{ proposal.metadata.title }}</div>
     <div class="md-subhead">
@@ -26,6 +27,7 @@
     <md-button v-on:click="vote(false)">Vote Nay</md-button>
   </md-card-actions>
 </md-card>
+</div>
 <md-snackbar :md-active.sync="voted">Transaction committed - {{ this.txHash }}!</md-snackbar>
 </div>
 </template>
@@ -34,7 +36,7 @@
 export default {
   metaInfo: function() {
     return {
-      title: 'Proposal ' + this.$route.params.id + (this.proposal ? ' — ' + this.proposal.metadata.title : '')
+      title: 'Proposal ' + this.$route.params.id + (this.$store.state.web3.ready ? ' — ' + this.proposal.metadata.title : '')
     }
   },
   data: () => {
@@ -55,7 +57,7 @@ export default {
   },
   computed: {
     proposal: function() {
-      return this.$store.state.proposals[this.$route.params.id];
+      return this.$store.state.web3.dao.proposals[this.$route.params.id];
     }
   }
 }
