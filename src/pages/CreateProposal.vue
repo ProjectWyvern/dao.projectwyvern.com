@@ -34,7 +34,7 @@
         <span class="md-error" v-if="!$v.form.bytecode.required">Transaction bytecode is required; enter the string "null" for an empty payload</span>
       </md-field>
     </div>
-    <md-button type="submit" class="md-raised md-primary">Continue</md-button>
+    <md-button type="submit" class="md-raised md-primary left">Continue</md-button>
   </form>
   </md-step>
   <md-step id="third" :md-done.sync="third" md-label="Describe Proposal">
@@ -53,7 +53,7 @@
         <span class="md-error" v-if="!$v.form.description.required">A description is required</span>
       </md-field>
     </div>
-    <md-button type="submit" class="md-raised md-primary">Continue</md-button>
+    <md-button type="submit" class="md-raised md-primary left">Continue</md-button>
   </form>
   </md-step>
   <md-step id="fourth" :md-done.sync="fourth" md-label="Review & Submit">

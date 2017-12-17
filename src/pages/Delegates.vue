@@ -8,7 +8,7 @@ Total tokens locked in vote delegation: {{ $store.state.web3.dao.totalLockedToke
 <div v-if="!pending && canDelegate">
 <div v-if="alreadyDelegated">
 <p>You are presently delegating {{ initialAmount }} votes to {{ initialDelegate }}.</p>
-<md-button class="md-raised" v-on:click="undelegateShares">Undelegate</md-button>
+<md-button class="left md-raised" v-on:click="undelegateShares">Undelegate</md-button>
 </div>
 <div v-if="!alreadyDelegated">
 You are not currently delegating votes.
@@ -20,7 +20,7 @@ You are not currently delegating votes.
   <label>Amount (tokens)</label>
   <md-input v-model="amount" type="number"></md-input>
 </md-field>
-<md-button class="md-raised" v-on:click="delegateShares">Delegate</md-button>
+<md-button class="left md-raised" v-on:click="delegateShares">Delegate</md-button>
 </div>
 </div>
 <div v-if="pending">
@@ -88,6 +88,11 @@ export default {
 <style scoped>
 .input {
   max-width: 500px;
+}
+
+.left {
+  position: relative;
+  left: -10px;
 }
 
 .loading {
