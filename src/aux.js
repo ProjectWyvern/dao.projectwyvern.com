@@ -107,6 +107,9 @@ export const bind = (store, bindings) => {
   const web3 = new Web3(new Web3.providers.HttpProvider(store.state.web3provider))
   const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
 
+  window.ipfs = ipfs
+  window.Buffer = Buffer
+
   const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
   const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
 
