@@ -22,13 +22,13 @@
 <div v-if="$store.state.web3.ready">
 <md-card md-with-hover class="proposal" v-for="(proposal, index) in proposals" :key="proposal.proposalHash">
   <md-card-header>
-    <router-link :to="'/proposals/' + index">
+    <router-link :to="'/proposals/' + proposal.index">
       <div class="md-title">{{ proposal.metadata.title }}</div>
     </router-link>
     <div class="md-subhead">
     Send {{ proposal.amount.toNumber() }} Ether to {{ proposal.recipient }}.
     <br />
-    {{ proposal.numberOfVotes.toNumber() }} votes cast so far. Voting ends {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
+    {{ proposal.numberOfVotes.toNumber() }} votes cast so far. Voting {{ proposal.over ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
     </div>
   </md-card-header>
   <md-card-content>
@@ -55,7 +55,11 @@ export default {
       return this.$store.state.web3.ready && this.$store.state.web3.base.account !== null;
     },
     proposals: function () {
-      return this.$store.state.web3.dao.proposals.filter(p => 
+      return this.$store.state.web3.dao.proposals.map((p, num) => {
+          p.index = num
+          p.over = (1000 * p.votingDeadline) <= Date.now()
+          return p
+        }).filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
         (this.which === 'all' ||
          (this.which === 'active' && Date.now() < (1000 * p.votingDeadline)) ||

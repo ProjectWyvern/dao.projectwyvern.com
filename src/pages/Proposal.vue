@@ -8,9 +8,9 @@
     <div class="md-subhead">
     Send {{ proposal.amount.toNumber() }} Ether to {{ proposal.recipient }}. 
     <br />
-    {{ proposal.numberOfVotes.toNumber() }} votes cast so far. Voting ends {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
+    {{ proposal.numberOfVotes.toNumber() }} votes cast {{ over ? '.' : 'so far.' }} Voting {{ over ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
     <br />
-    Currently {{ proposal.yea.div($store.state.web3.token.multiplier).toNumber() }} shares are voting yea and {{ proposal.nay.div($store.state.web3.token.multiplier).toNumber() }} shares are voting nay.
+    {{ proposal.yea.div($store.state.web3.token.multiplier).toNumber() }} shares {{ over ? 'voted' : 'are voting' }} yea and {{ proposal.nay.div($store.state.web3.token.multiplier).toNumber() }} shares {{ over ? 'voted' : 'are voting' }} nay.
     <br />
     That makes a total of {{ proposal.quorum.div($store.state.web3.token.multiplier).toNumber() }} votes, {{ percentQuorum }}% of the minimum quorum.
     </div>
@@ -63,6 +63,10 @@ export default {
     }
   },
   computed: {
+    over: function() {
+      console.log((1000 * this.proposal.votingDeadline) <= Date.now());
+      return (1000 * this.proposal.votingDeadline) <= Date.now();
+    },
     percentQuorum: function() {
       var pct = this.proposal.quorum.div(this.$store.state.web3.dao.minimumQuorum).mul(100).toNumber()
       if (pct > 100) pct = 'over 100'
