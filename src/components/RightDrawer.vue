@@ -8,8 +8,9 @@
 <md-field class="provider">
   <label for="provider">Web3 Provider</label>
   <md-select v-model="provider" name="provider" id="provider">
-    <md-option value="http://localhost:8545">Default</md-option>
-    <md-option value="https://kovan.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6">Infura [Kovan]</md-option>
+    <md-option value="injected">Injected Web3 (Metamask/Parity)</md-option>
+    <md-option value="http://localhost:8545">Localhost (Parity/Geth)</md-option>
+    <md-option value="https://rinkeby.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6">Infura [Rinkeby]</md-option>
   </md-select>
 </md-field>
 <md-list v-if="$store.state.web3.ready">

@@ -17,7 +17,7 @@ const state = {
   notifications: [],
   web3: {},
   web3error: null,
-  web3provider: 'https://kovan.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6'
+  web3provider: 'injected'
 }
 
 const getters = {
@@ -30,6 +30,11 @@ try {
   provider = JSON.parse(window.localStorage.vuex).web3provider
 } catch (err) {
   logger.warn({ extra: { err } }, 'Could not parse provider from localStorage')
+  if (!window.web3) {
+    const def = 'https://rinkeby.infura.io/8jK7Ap7Z0o5ZfSZ5dyv6'
+    provider = def
+    state.web3provider = def
+  }
 }
 
 actions = Object.assign(actions, web3Actions(provider))

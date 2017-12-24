@@ -12,6 +12,7 @@ import { logger } from './logging.js'
 
 import TestDAO from './wyvern-ethereum/build/contracts/TestDAO.json'
 import TestToken from './wyvern-ethereum/build/contracts/TestToken.json'
+import config from './wyvern-ethereum/config.json'
 
 const promisify = (inner) =>
   new Promise((resolve, reject) =>
@@ -73,9 +74,15 @@ const wrapSend = (web3, method, abi, gasLimit) => {
 }
 
 export const web3Actions = (provider) => {
-  const web3 = new Web3(new Web3.providers.HttpProvider(provider))
-  const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
-  const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
+  var web3Provider
+  if (provider === 'injected') {
+    web3Provider = window.web3.currentProvider
+  } else {
+    web3Provider = new Web3.providers.HttpProvider(provider)
+  }
+  const web3 = new Web3(web3Provider)
+  const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed['rinkeby'].TestDAO)
+  const Token = new web3.eth.Contract(TestToken.abi, config.deployed['rinkeby'].TestToken)
   const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
   const methodAbi = (c, m) => {
     return c.abi.filter(f => f.name === m)[0]
@@ -104,14 +111,18 @@ export const web3Actions = (provider) => {
 }
 
 export const bind = (store, bindings) => {
-  const web3 = new Web3(new Web3.providers.HttpProvider(store.state.web3provider))
+  const provider = store.state.web3provider
+  var web3Provider
+  if (provider === 'injected') {
+    web3Provider = window.web3.currentProvider
+  } else {
+    web3Provider = new Web3.providers.HttpProvider(provider)
+  }
+  const web3 = new Web3(web3Provider)
   const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
 
   window.ipfs = ipfs
   window.Buffer = Buffer
-
-  const DAO = new web3.eth.Contract(TestDAO.abi, TestDAO.networks[42].address)
-  const Token = new web3.eth.Contract(TestToken.abi, TestToken.networks[42].address)
 
   var blockNumber
 
@@ -128,6 +139,9 @@ export const bind = (store, bindings) => {
     const account = accounts[0] ? accounts[0] : null
     const balance = account ? await promisify(c => web3.eth.getBalance(account, c)) : 0
     const base = { account: account, blockNumber: blockNumber, network: network, balance: new BigNumber(balance) }
+
+    const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed[network].TestDAO)
+    const Token = new web3.eth.Contract(TestToken.abi, config.deployed[network].TestToken)
 
     var token
     {
@@ -162,6 +176,7 @@ export const bind = (store, bindings) => {
       const delegatesByDelegator = account ? await promisify(DAO.methods.delegatesByDelegator(account).call) : null
       const lockedDelegatingTokens = account ? await promisify(DAO.methods.lockedDelegatingTokens(account).call) : 0
       const delegatedAmountsByDelegate = account ? await promisify(DAO.methods.delegatedAmountsByDelegate(account).call) : 0
+      const etherBalance = await promisify(c => web3.eth.getBalance(config.deployed[network].TestDAO, c))
       var proposals = await Promise.all(_.range(numProposals).map(n => promisify(DAO.methods.proposals(n).call)))
       proposals = await Promise.all(proposals.map(async function (p, index) {
         const hash = Buffer.from(p.metadataHash.slice(2), 'hex').toString()
@@ -190,7 +205,8 @@ export const bind = (store, bindings) => {
       })
       events.reverse()
       dao = {
-        address: TestDAO.networks[42].address,
+        address: config.deployed[network].TestDAO,
+        balance: new BigNumber(etherBalance),
         minimumQuorum: new BigNumber(minimumQuorum),
         debatingPeriodInMinutes: parseInt(debatingPeriodInMinutes),
         numProposals: parseInt(numProposals),
