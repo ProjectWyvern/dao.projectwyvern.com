@@ -6,9 +6,9 @@
   <md-card-header>
     <div class="md-title">{{ proposal.metadata.title }}</div>
     <div class="md-subhead">
-    Send {{ proposal.amount.toNumber() }} Ether to {{ proposal.recipient }}. 
+    Send {{ proposal.amount.div($store.state.web3.token.multiplier).toNumber() }} Ether to {{ proposal.recipient }}. 
     <br />
-    {{ proposal.numberOfVotes.toNumber() }} votes cast {{ over ? '.' : 'so far.' }} Voting {{ over ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
+    {{ proposal.numberOfVotes.toNumber() }} votes cast{{ over ? '.' : ' so far.' }} Voting {{ over ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
     <br />
     {{ proposal.yea.div($store.state.web3.token.multiplier).toNumber() }} shares {{ over ? 'voted' : 'are voting' }} yea and {{ proposal.nay.div($store.state.web3.token.multiplier).toNumber() }} shares {{ over ? 'voted' : 'are voting' }} nay.
     <br />
@@ -77,6 +77,7 @@ export default {
       return this.$store.state.web3.base.account !== null;
     },
     proposal: function() {
+      console.log(this.$store.state.web3.dao.proposals[this.$route.params.id].numberOfVotes.toNumber());
       return this.$store.state.web3.dao.proposals[this.$route.params.id];
     }
   }

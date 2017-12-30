@@ -59,9 +59,13 @@ const assertReady = (state) => {
   if (!state.web3.ready) throw new Error('Attempted to execute action prior to web3 sync, please wait')
 }
 
-const wrapSend = (web3, method, abi, gasLimit) => {
+const wrapSend = (web3, methodGen, abi, gasLimit) => {
   return async ({ state, commit }, { params, onTxHash, onConfirm }) => {
     assertReady(state)
+    const network = await promisify(web3.eth.net.getNetworkType)
+    const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed[network].TestDAO)
+    const Token = new web3.eth.Contract(TestToken.abi, config.deployed[network].TestToken)
+    const method = methodGen(DAO, Token)
     await promisify(method.apply(this, params).call)
     const txHash = await promisify(c => method.apply(this, params).send({from: state.web3.base.account, gasLimit: gasLimit}, c))
     commit('commitTx', { txHash: txHash, abi: abi, params: params })
@@ -81,24 +85,22 @@ export const web3Actions = (provider) => {
     web3Provider = new Web3.providers.HttpProvider(provider)
   }
   const web3 = new Web3(web3Provider)
-  const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed['rinkeby'].TestDAO)
-  const Token = new web3.eth.Contract(TestToken.abi, config.deployed['rinkeby'].TestToken)
   const ipfs = ipfsAPI({host: 'ipfs.infura.io', protocol: 'https'})
   const methodAbi = (c, m) => {
     return c.abi.filter(f => f.name === m)[0]
   }
   return {
-    approve: wrapAction(wrapSend(web3, Token.methods.approve, methodAbi(TestToken, 'approve'), 250000)),
-    setDelegateAndLockTokens: wrapAction(wrapSend(web3, DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
-    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
-    vote: wrapAction(wrapSend(web3, DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
+    approve: wrapAction(wrapSend(web3, (DAO, Token) => Token.methods.approve, methodAbi(TestToken, 'approve'), 250000)),
+    setDelegateAndLockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
+    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
+    vote: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
     createProposal: wrapAction(async ({ state, commit }, { title, description, address, amount, bytecode, onTxHash, onConfirm }) => {
       const wei = web3.utils.toWei(amount, 'ether')
       if (bytecode === 'null') bytecode = '0x'
       const json = {title: title, description: description, bytecode: bytecode, version: 1}
       const res = await ipfs.files.add(Buffer.from(JSON.stringify(json)))
       const hash = '0x' + Buffer.from(res[0].hash).toString('hex')
-      return wrapSend(web3, DAO.methods.newProposal, methodAbi(TestDAO, 'newProposal'), 500000)(
+      return wrapSend(web3, (DAO, Token) => DAO.methods.newProposal, methodAbi(TestDAO, 'newProposal'), 500000)(
         { state, commit },
         { params: [address, wei, hash, bytecode], onTxHash: onTxHash, onConfirm: onConfirm }
       )
