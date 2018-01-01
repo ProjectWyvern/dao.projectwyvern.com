@@ -5,10 +5,10 @@
     <md-icon>search</md-icon>
     <md-input v-model="title" placeholder="Filter by title"></md-input>
   </md-field>
+  <md-radio v-model="which" value="all">All</md-radio>
   <md-radio v-model="which" value="active">Active</md-radio>
   <md-radio v-model="which" value="passed">Passed</md-radio>
   <md-radio v-model="which" value="failed">Failed</md-radio>
-  <md-radio v-model="which" value="all">All</md-radio>
   <div class="md-toolbar-section-end" v-if="canCreateProposal">
     <router-link to="/proposals/create">
       <md-button class="md-raised md-primary">
@@ -24,6 +24,7 @@
   <md-card-header>
     <router-link :to="'/proposals/' + proposal.index">
       <div class="md-title">{{ proposal.metadata.title }}</div>
+      <div class="status"><md-button class="md-raised" disabled>{{ proposal.status }}</md-button></div>
     </router-link>
     <div class="md-subhead">
     Send {{ proposal.amount.div($store.state.web3.token.multiplier).toNumber() }} Ether to {{ proposal.recipient }}.
@@ -47,7 +48,7 @@ export default {
   data: () => {
     return {
       title: '',
-      which: 'active',
+      which: 'all',
     }
   },
   computed: {
@@ -58,6 +59,7 @@ export default {
       return this.$store.state.web3.dao.proposals.map((p, num) => {
           p.index = num
           p.over = (1000 * p.votingDeadline) <= Date.now()
+          p.status = p.over ? (p.proposalPassed ? 'Passed' : 'Failed') : 'Voting'
           return p
         }).filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
@@ -87,5 +89,12 @@ export default {
 
 .progressbar {
   margin-top: 10px;
+}
+
+.status {
+  position: relative;
+  bottom: 2.5em;
+  font-size: 0.8em;
+  float: right;
 }
 </style>

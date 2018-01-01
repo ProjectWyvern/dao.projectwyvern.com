@@ -94,6 +94,7 @@ export const web3Actions = (provider) => {
     setDelegateAndLockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
     clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
     vote: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
+    executeProposal: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.executeProposal, methodAbi(TestDAO, 'executeProposal'), 500000)),
     createProposal: wrapAction(async ({ state, commit }, { title, description, address, amount, bytecode, onTxHash, onConfirm }) => {
       const wei = web3.utils.toWei(amount, 'ether')
       if (bytecode === 'null') bytecode = '0x'
@@ -185,6 +186,7 @@ export const bind = (store, bindings) => {
         var metadata = await promisify(c => ipfs.files.cat(hash, c))
         metadata = JSON.parse(metadata.toString())
         const { yea, nay, quorum } = await promisify(DAO.methods.countVotes(index).call)
+        const hasVoted = account ? await promisify(DAO.methods.hasVoted(index, account).call) : false
         return {
           yea: new BigNumber(yea),
           nay: new BigNumber(nay),
@@ -197,6 +199,7 @@ export const bind = (store, bindings) => {
           votingDeadline: parseInt(p.votingDeadline),
           executed: p.executed,
           proposalPassed: p.proposalPassed,
+          hasVoted: hasVoted,
           numberOfVotes: new BigNumber(p.numberOfVotes)
         }
       }))

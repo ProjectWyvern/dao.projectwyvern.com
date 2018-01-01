@@ -4,7 +4,12 @@
 <div v-if="$store.state.web3.ready">
 <md-card class="proposal">
   <md-card-header>
-    <div class="md-title">{{ proposal.metadata.title }}</div>
+    <div class="md-title">
+    {{ proposal.metadata.title }}
+    <div class="status">
+    <md-button class="md-raised" disabled>{{ status }}</md-button>
+    </div>
+    </div>
     <div class="md-subhead">
     Send {{ proposal.amount.div($store.state.web3.token.multiplier).toNumber() }} Ether to {{ proposal.recipient }}. 
     <br />
@@ -28,8 +33,11 @@
     <md-button v-on:click="vote(true)">Vote Yea</md-button>
     <md-button v-on:click="vote(false)">Vote Nay</md-button>
   </md-card-actions>
-  <md-card-actions v-if="voting">
+  <md-card-actions v-else-if="voting">
     <md-progress-bar md-mode="indeterminate" class="voting"></md-progress-bar>
+  </md-card-actions>
+  <md-card-actions v-else-if="canFinalize">
+    <md-button v-on:click="executeProposal">Execute Proposal</md-button>
   </md-card-actions>
 </md-card>
 </div>
@@ -60,11 +68,20 @@ export default {
         this.voting = false
       }
       this.$store.dispatch('vote', { params: [this.$route.params.id, support], onTxHash: onTxHash, onConfirm: onConfirm })
+    },
+    executeProposal: function() {
+      const onTxHash = (txHash) => {
+        this.commit = true
+        this.voting = true
+      }
+      const onConfirm = () => {
+        this.voting = false
+      }
+      this.$store.dispatch('executeProposal', { params: [this.$route.params.id, this.proposal.metadata.bytecode], onTxHash: onTxHash, onConfirm: onConfirm })
     }
   },
   computed: {
     over: function() {
-      console.log((1000 * this.proposal.votingDeadline) <= Date.now());
       return (1000 * this.proposal.votingDeadline) <= Date.now();
     },
     percentQuorum: function() {
@@ -73,11 +90,18 @@ export default {
       else pct = '' + pct
       return pct
     },
+    status: function() {
+      return this.over ?
+          (this.proposal.proposalPassed ? 'Passed' : 'Failed')
+        : 'Voting';
+    },
+    canFinalize: function() {
+      return this.over && !this.proposal.executed && !this.proposal.proposalPassed;
+    },
     canVote: function() {
-      return this.$store.state.web3.base.account !== null;
+      return this.$store.state.web3.base.account !== null && !this.proposal.hasVoted;
     },
     proposal: function() {
-      console.log(this.$store.state.web3.dao.proposals[this.$route.params.id].numberOfVotes.toNumber());
       return this.$store.state.web3.dao.proposals[this.$route.params.id];
     }
   }
@@ -93,6 +117,11 @@ export default {
   margin-top: 15px;
   margin-bottom: 15px;
   width: 180px;
+  float: right;
+}
+
+.status {
+  font-size: 0.8em;
   float: right;
 }
 </style>
