@@ -49,7 +49,7 @@ export default {
       })[type]
     },
     viewTx: function(txHash) {
-      window.open('https://kovan.etherscan.io/tx/' + txHash)
+      window.open('https://' + this.$store.state.web3.base.network + '.etherscan.io/tx/' + txHash)
     },
     clear: function(index) {
       this.$store.commit('clearNotification', index)

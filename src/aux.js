@@ -10,8 +10,8 @@ import Vue from 'vue'
 
 import { logger } from './logging.js'
 
-import TestDAO from './wyvern-ethereum/build/contracts/TestDAO.json'
-import TestToken from './wyvern-ethereum/build/contracts/TestToken.json'
+import WyvernDAO from './wyvern-ethereum/build/contracts/WyvernDAO.json'
+import WyvernToken from './wyvern-ethereum/build/contracts/WyvernToken.json'
 import config from './wyvern-ethereum/config.json'
 
 const promisify = (inner) =>
@@ -31,7 +31,7 @@ export const track = (web3, txHash, onConfirm) => {
     txCallbacks[txHash] = [onConfirm]
     const poll = async () => {
       const tx = await promisify(c => web3.eth.getTransaction(txHash, c))
-      if (tx.blockHash) {
+      if (tx.blockHash && tx.blockHash !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
         const receipt = await promisify(c => web3.eth.getTransactionReceipt(txHash, c))
         const status = parseInt(receipt.status) === 1
         txCallbacks[txHash].map(f => f(status))
@@ -63,8 +63,8 @@ const wrapSend = (web3, methodGen, abi, gasLimit) => {
   return async ({ state, commit }, { params, onTxHash, onConfirm }) => {
     assertReady(state)
     const network = await promisify(web3.eth.net.getNetworkType)
-    const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed[network].TestDAO)
-    const Token = new web3.eth.Contract(TestToken.abi, config.deployed[network].TestToken)
+    const DAO = new web3.eth.Contract(WyvernDAO.abi, config.deployed[network].WyvernDAO)
+    const Token = new web3.eth.Contract(WyvernToken.abi, config.deployed[network].WyvernToken)
     const method = methodGen(DAO, Token)
     await promisify(method.apply(this, params).call)
     const txHash = await promisify(c => method.apply(this, params).send({from: state.web3.base.account, gasLimit: gasLimit}, c))
@@ -90,18 +90,18 @@ export const web3Actions = (provider) => {
     return c.abi.filter(f => f.name === m)[0]
   }
   return {
-    approve: wrapAction(wrapSend(web3, (DAO, Token) => Token.methods.approve, methodAbi(TestToken, 'approve'), 250000)),
-    setDelegateAndLockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.setDelegateAndLockTokens, methodAbi(TestDAO, 'setDelegateAndLockTokens'), 250000)),
-    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.clearDelegateAndUnlockTokens, methodAbi(TestDAO, 'clearDelegateAndUnlockTokens'), 250000)),
-    vote: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.vote, methodAbi(TestDAO, 'vote'), 250000)),
-    executeProposal: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.executeProposal, methodAbi(TestDAO, 'executeProposal'), 500000)),
+    approve: wrapAction(wrapSend(web3, (DAO, Token) => Token.methods.approve, methodAbi(WyvernToken, 'approve'), 250000)),
+    setDelegateAndLockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.setDelegateAndLockTokens, methodAbi(WyvernDAO, 'setDelegateAndLockTokens'), 250000)),
+    clearDelegateAndUnlockTokens: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.clearDelegateAndUnlockTokens, methodAbi(WyvernDAO, 'clearDelegateAndUnlockTokens'), 250000)),
+    vote: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.vote, methodAbi(WyvernDAO, 'vote'), 250000)),
+    executeProposal: wrapAction(wrapSend(web3, (DAO, Token) => DAO.methods.executeProposal, methodAbi(WyvernDAO, 'executeProposal'), 500000)),
     createProposal: wrapAction(async ({ state, commit }, { title, description, address, amount, bytecode, onTxHash, onConfirm }) => {
       const wei = web3.utils.toWei(amount, 'ether')
       if (bytecode === 'null') bytecode = '0x'
       const json = {title: title, description: description, bytecode: bytecode, version: 1}
       const res = await ipfs.files.add(Buffer.from(JSON.stringify(json)))
       const hash = '0x' + Buffer.from(res[0].hash).toString('hex')
-      return wrapSend(web3, (DAO, Token) => DAO.methods.newProposal, methodAbi(TestDAO, 'newProposal'), 500000)(
+      return wrapSend(web3, (DAO, Token) => DAO.methods.newProposal, methodAbi(WyvernDAO, 'newProposal'), 500000)(
         { state, commit },
         { params: [address, wei, hash, bytecode], onTxHash: onTxHash, onConfirm: onConfirm }
       )
@@ -143,8 +143,8 @@ export const bind = (store, bindings) => {
     const balance = account ? await promisify(c => web3.eth.getBalance(account, c)) : 0
     const base = { account: account, blockNumber: blockNumber, network: network, balance: new BigNumber(balance) }
 
-    const DAO = new web3.eth.Contract(TestDAO.abi, config.deployed[network].TestDAO)
-    const Token = new web3.eth.Contract(TestToken.abi, config.deployed[network].TestToken)
+    const DAO = new web3.eth.Contract(WyvernDAO.abi, config.deployed[network].WyvernDAO)
+    const Token = new web3.eth.Contract(WyvernToken.abi, config.deployed[network].WyvernToken)
 
     var token
     {
@@ -179,7 +179,7 @@ export const bind = (store, bindings) => {
       const delegatesByDelegator = account ? await promisify(DAO.methods.delegatesByDelegator(account).call) : null
       const lockedDelegatingTokens = account ? await promisify(DAO.methods.lockedDelegatingTokens(account).call) : 0
       const delegatedAmountsByDelegate = account ? await promisify(DAO.methods.delegatedAmountsByDelegate(account).call) : 0
-      const etherBalance = await promisify(c => web3.eth.getBalance(config.deployed[network].TestDAO, c))
+      const etherBalance = await promisify(c => web3.eth.getBalance(config.deployed[network].WyvernDAO, c))
       var proposals = await Promise.all(_.range(numProposals).map(n => promisify(DAO.methods.proposals(n).call)))
       proposals = await Promise.all(proposals.map(async function (p, index) {
         const hash = Buffer.from(p.metadataHash.slice(2), 'hex').toString()
@@ -210,7 +210,7 @@ export const bind = (store, bindings) => {
       })
       events.reverse()
       dao = {
-        address: config.deployed[network].TestDAO,
+        address: config.deployed[network].WyvernDAO,
         balance: new BigNumber(etherBalance),
         minimumQuorum: new BigNumber(minimumQuorum),
         debatingPeriodInMinutes: parseInt(debatingPeriodInMinutes),
