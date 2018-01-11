@@ -58,15 +58,14 @@ export default {
     proposals: function () {
       return this.$store.state.web3.dao.proposals.map((p, num) => {
           p.index = num
-          p.over = (1000 * p.votingDeadline) <= Date.now()
-          p.status = p.over ? (p.proposalPassed ? 'Passed' : 'Failed') : 'Voting'
+          p.status = p.finalized ? (p.proposalPassed ? 'Passed' : 'Failed') : 'Voting'
           return p
         }).filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
         (this.which === 'all' ||
-         (this.which === 'active' && Date.now() < (1000 * p.votingDeadline)) ||
-         (this.which === 'passed' && p.proposalPassed) ||
-         (this.which === 'failed' && !p.proposalPassed && Date.now() > (1000 * p.votingDeadline)))
+         (this.which === 'active' && !p.finalized) ||
+         (this.which === 'passed' && p.finalized && p.proposalPassed) ||
+         (this.which === 'failed' && p.finalized && !p.proposalPassed))
       )
     }
   }

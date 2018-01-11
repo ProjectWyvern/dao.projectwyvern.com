@@ -82,7 +82,7 @@ export default {
   },
   computed: {
     over: function() {
-      return (1000 * this.proposal.votingDeadline) <= Date.now();
+      return this.proposal.finalized;
     },
     percentQuorum: function() {
       var pct = this.proposal.quorum.div(this.$store.state.web3.dao.minimumQuorum).mul(100).toNumber()
