@@ -188,16 +188,16 @@ export const bind = (store, bindings) => {
         const { yea, nay, quorum } = await promisify(DAO.methods.countVotes(index).call)
         const hasVoted = account ? await promisify(DAO.methods.hasVoted(index, account).call) : false
         return {
-          yea: new BigNumber(yea),
-          nay: new BigNumber(nay),
-          quorum: new BigNumber(quorum),
+          yea: new BigNumber(yea || 0),
+          nay: new BigNumber(nay || 0),
+          quorum: new BigNumber(quorum || 0),
           recipient: p.recipient,
           metadata: metadata,
           amount: new BigNumber(p.amount),
           metadataHash: p.metadataHash,
           timeCreated: parseInt(p.timeCreated),
           votingDeadline: parseInt(p.votingDeadline),
-          executed: p.executed,
+          finalized: p.finalized,
           proposalPassed: p.proposalPassed,
           hasVoted: hasVoted,
           numberOfVotes: new BigNumber(p.numberOfVotes)

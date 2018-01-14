@@ -96,7 +96,7 @@ export default {
         : 'Voting';
     },
     canFinalize: function() {
-      return this.over && !this.proposal.finalized;
+      return !this.over;
     },
     canVote: function() {
       return this.$store.state.web3.base.account !== null && !this.proposal.hasVoted;
