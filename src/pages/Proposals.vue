@@ -7,6 +7,7 @@
   </md-field>
   <md-radio v-model="which" value="all">All</md-radio>
   <md-radio v-model="which" value="active">Active</md-radio>
+  <md-radio v-model="which" value="inactive">Inactive</md-radio>
   <md-radio v-model="which" value="passed">Passed</md-radio>
   <md-radio v-model="which" value="failed">Failed</md-radio>
   <div class="md-toolbar-section-end" v-if="canCreateProposal">
@@ -29,7 +30,7 @@
     <div class="md-subhead">
     Send {{ proposal.amount.div($store.state.web3.token.multiplier).toNumber() }} Ether to {{ proposal.recipient }}.
     <br />
-    {{ proposal.numberOfVotes.toNumber() }} votes cast{{ proposal.over ? '.' : ' so far.' }} Voting {{ proposal.over ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
+    {{ proposal.numberOfVotes.toNumber() }} votes cast{{ proposal.finalized ? '.' : ' so far.' }} Voting {{ proposal.past ? 'ended' : 'ends' }} {{ new Date(1000 * proposal.votingDeadline) | moment('from', 'now')}}.
     </div>
   </md-card-header>
   <md-card-content>
@@ -58,12 +59,14 @@ export default {
     proposals: function () {
       return this.$store.state.web3.dao.proposals.map((p, num) => {
           p.index = num
-          p.status = p.finalized ? (p.proposalPassed ? 'Passed' : 'Failed') : 'Voting'
+          p.past = Date.now() > new Date(1000 * p.votingDeadline)
+          p.status = p.finalized ? (p.proposalPassed ? 'Passed' : 'Failed') : (p.past ? 'Inactive' : 'Voting')
           return p
         }).filter(p => 
         (p.metadata.title.indexOf(this.title) !== -1) &&
         (this.which === 'all' ||
-         (this.which === 'active' && !p.finalized) ||
+         (this.which === 'active' && !p.finalized && p.status !== 'Inactive') ||
+         (this.which === 'inactive' && p.status === 'Inactive') ||
          (this.which === 'passed' && p.finalized && p.proposalPassed) ||
          (this.which === 'failed' && p.finalized && !p.proposalPassed))
       )

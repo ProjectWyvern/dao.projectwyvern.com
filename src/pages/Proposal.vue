@@ -93,7 +93,7 @@ export default {
     status: function() {
       return this.over ?
           (this.proposal.proposalPassed ? 'Passed' : 'Failed')
-        : 'Voting';
+        : ((Date.now() > new Date(1000 * this.proposal.votingDeadline)) ? 'Inactive' : 'Voting');
     },
     canFinalize: function() {
       return !this.over;
