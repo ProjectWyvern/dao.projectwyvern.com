@@ -152,12 +152,15 @@ export const bind = (store, bindings) => {
       const decimals = await promisify(Token.methods.decimals().call)
       const symbol = await promisify(Token.methods.symbol().call)
       const balance = account ? await promisify(Token.methods.balanceOf(account).call) : 0
+      /*
       var events = await promisify(c => Token.getPastEvents('allEvents', {fromBlock: 0}, c))
       events = events.map(e => {
         if (e.returnValues.numberOfTokens) e.returnValues.numberOfTokens = new BigNumber(e.returnValues.numberOfTokens)
         return e
       })
       events.reverse()
+      */
+      var events = []
       token = {
         multiplier: new BigNumber(Math.pow(10, decimals)),
         supply: new BigNumber(supply),
@@ -203,12 +206,14 @@ export const bind = (store, bindings) => {
           numberOfVotes: new BigNumber(p.numberOfVotes)
         }
       }))
+
       events = await promisify(c => DAO.getPastEvents('allEvents', {fromBlock: 0}, c))
       events = events.map(e => {
         if (e.returnValues.numberOfTokens) e.returnValues.numberOfTokens = new BigNumber(e.returnValues.numberOfTokens)
         return e
       })
       events.reverse()
+
       dao = {
         address: config.deployed[network].WyvernDAO,
         balance: new BigNumber(etherBalance),
