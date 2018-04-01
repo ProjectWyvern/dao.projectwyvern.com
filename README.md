@@ -10,7 +10,7 @@
 
 ### Synopsis
 
-*Autonomously governed decentralized digital item exchange.*
+*Autonomously governed decentralized digital asset exchange.*
 
 Web frontend for the Wyvern DAO.
 
